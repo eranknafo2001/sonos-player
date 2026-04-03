@@ -1,5 +1,6 @@
 const publishedRepoUrl = process.env.PUBLISHED_REPO_URL ?? "https://github.com/eranknafo2001/sonos-player-ha";
 const outputDir = process.env.HA_EXPORT_DIR ?? "dist/ha-publish";
+const shouldBumpVersion = process.env.BUMP_VERSION === "true";
 
 async function rm(path: string) {
   await Bun.$`rm -rf ${path}`;
@@ -17,7 +18,36 @@ async function write(path: string, content: string) {
   await Bun.write(path, content);
 }
 
+async function bumpVersion() {
+  const configPath = "packages/ha-addon/config.yaml";
+  const manifestPath = "packages/ha-integration/custom_components/sonos_player/manifest.json";
+
+  const config = await Bun.file(configPath).text();
+  const match = config.match(/version: "(\d+)\.(\d+)\.(\d+)"/);
+  if (!match) throw new Error("Could not parse version from config.yaml");
+
+  const [, major, minor, patch] = match;
+  const newVersion = `${major}.${minor}.${Number(patch) + 1}`;
+  console.log(`Bumping version: ${match[1]} -> ${newVersion}`);
+
+  await Bun.write(configPath, config.replace(/version: ".*"/, `version: "${newVersion}"`));
+
+  const manifest = await Bun.file(manifestPath).text();
+  await Bun.write(manifestPath, manifest.replace(/"version": ".*"/, `"version": "${newVersion}"`));
+
+  return newVersion;
+}
+
 async function main() {
+  if (shouldBumpVersion) {
+    const newVersion = await bumpVersion();
+    // Write version for CI to pick up
+    if (process.env.GITHUB_ENV) {
+      const fs = await import("node:fs");
+      fs.appendFileSync(process.env.GITHUB_ENV, `NEW_VERSION=${newVersion}\n`);
+    }
+  }
+
   await rm(outputDir);
   await mkdir(outputDir);
 

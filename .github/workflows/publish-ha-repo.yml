@@ -31,27 +31,8 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Bump version
-        run: |
-          # Read current version from addon config
-          CURRENT=$(grep '^version:' packages/ha-addon/config.yaml | sed 's/version: *"\(.*\)"/\1/')
-          MAJOR=$(echo "$CURRENT" | cut -d. -f1)
-          MINOR=$(echo "$CURRENT" | cut -d. -f2)
-          PATCH=$(echo "$CURRENT" | cut -d. -f3)
-          NEW_PATCH=$((PATCH + 1))
-          NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
-          echo "Bumping version: ${CURRENT} -> ${NEW_VERSION}"
-
-          # Update addon config
-          sed -i "s/^version: \".*\"/version: \"${NEW_VERSION}\"/" packages/ha-addon/config.yaml
-
-          # Update integration manifest
-          sed -i "s/\"version\": \".*\"/\"version\": \"${NEW_VERSION}\"/" packages/ha-integration/custom_components/sonos_player/manifest.json
-
-          echo "NEW_VERSION=${NEW_VERSION}" >> "$GITHUB_ENV"
-
-      - name: Export HA repository contents
-        run: bun export:ha
+      - name: Bump version and export HA repository
+        run: BUMP_VERSION=true bun export:ha
 
       - name: Checkout target repo
         env:
