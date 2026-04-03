@@ -13,7 +13,7 @@ Custom Home Assistant integration for the Sonos Player headless service.
 ## Installation
 
 ### HACS
-Add this repository as a custom repository and install the `Sonos Player` integration.
+Add `https://github.com/eranknafo2001/sonos-player` as a custom repository and install the `Sonos Player` integration.
 
 ### Manual
 Copy `custom_components/sonos_player` into your Home Assistant `config/custom_components/` directory.

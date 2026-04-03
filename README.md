@@ -7,8 +7,10 @@ A local Sonos controller built with Bun, `@svrooij/sonos`, MQTT, and a separate 
 - `packages/core` — Sonos control, MQTT integration, shared app logic, CLI
 - `packages/headless` — headless service entrypoint + HTTP API
 - `packages/tui` — debug OpenTUI app
-- `packages/ha-addon` — Home Assistant add-on package for HAOS
-- `packages/ha-integration` — Home Assistant custom integration (HACS/manual)
+- `packages/ha-addon` — source package for the Home Assistant add-on
+- `packages/ha-integration` — source package for the Home Assistant custom integration
+- `sonos_player` — publishable HAOS add-on path at repo root
+- `custom_components/sonos_player` — publishable HACS/manual integration path at repo root
 
 ## Development environment
 
@@ -84,18 +86,32 @@ MQTT_PASSWORD=your-password
 
 ## Home Assistant setup
 
-There are now two Home Assistant-facing packages in this repo:
+This repository now supports both Home Assistant distribution paths from the repo root:
 
-- `packages/ha-addon` — runs the Sonos Player backend on Home Assistant OS
-- `packages/ha-integration` — custom Home Assistant integration that provides a real `media_player`
+- **HA add-on repository** via root `repository.yaml`
+- **HACS custom integration** via root `hacs.json`
+
+Publishable root paths:
+
+- `sonos_player/` — HAOS add-on
+- `custom_components/sonos_player/` — HACS/manual custom integration
+
+Quick add links:
+
+- HACS custom repo: `https://my.home-assistant.io/redirect/hacs_repository/?owner=eranknafo2001&repository=sonos-player&category=integration`
+- Add-on repo: `https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Feranknafo2001%2Fsonos-player`
 
 You need both if you want the full HA experience.
 
 ### 1. Install the add-on on HAOS
 
-Add your repository to the Home Assistant add-on store, then install the add-on from:
+Add this repository URL to the Home Assistant add-on store repositories list, then install the add-on:
 
-- `packages/ha-addon`
+- `sonos_player`
+
+Repository quick link:
+
+- `https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Feranknafo2001%2Fsonos-player`
 
 Configure it with values like:
 
@@ -134,14 +150,18 @@ Add this repository as a custom repository in HACS and install:
 
 - `Sonos Player`
 
-This uses:
+Repository quick link:
 
-- `packages/ha-integration`
+- `https://my.home-assistant.io/redirect/hacs_repository/?owner=eranknafo2001&repository=sonos-player&category=integration`
+
+This uses the root integration path:
+
+- `custom_components/sonos_player`
 
 #### Manual install
 Copy:
 
-- `packages/ha-integration/custom_components/sonos_player`
+- `custom_components/sonos_player`
 
 into your Home Assistant config directory:
 
@@ -196,4 +216,5 @@ Current media browsing support:
 - OpenTUI is isolated to the TUI package
 - Home Assistant discovery is published through MQTT device discovery at `homeassistant/device/sonos-player/config`, and the app also clears common legacy per-entity discovery topics to avoid duplicates after upgrades
 - the custom Home Assistant integration uses the headless HTTP API to provide a real `media_player` with Sonos Favorites browsing
-- because this repo is a monorepo, final HA add-on store / HACS publishing may still need one more packaging pass depending on how you publish the repository
+- this repo now includes both the root-level HA add-on repository metadata and the root-level HACS metadata so one GitHub repository can be used for both distribution paths
+- the root `sonos_player/` add-on folder is self-contained for Home Assistant add-on builds and includes its own copied workspace files needed by the Docker build

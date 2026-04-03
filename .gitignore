@@ -38,6 +38,11 @@ report.*.*.*.*.json
 .idea/
 .vscode/
 
+# Python / Home Assistant
+__pycache__/
+*.pyc
+.pytest_cache/
+
 # OS files
 .DS_Store
 

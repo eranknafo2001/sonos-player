@@ -10,8 +10,7 @@
     "start": "cd packages/headless && bun start",
     "tui": "cd packages/tui && bun start",
     "cli": "cd packages/core && bun cli",
-    "typecheck": "cd packages/core && bun run typecheck && cd ../headless && bun run typecheck && cd ../tui && bun run typecheck",
-    "export:ha": "bun scripts/export-ha.ts"
+    "typecheck": "cd packages/core && bun run typecheck && cd ../headless && bun run typecheck && cd ../tui && bun run typecheck"
   },
   "devDependencies": {
     "@types/bun": "latest",

@@ -1,0 +1,71 @@
+name: Publish HA repo
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/core/**"
+      - "packages/headless/**"
+      - "packages/ha-addon/**"
+      - "packages/ha-integration/**"
+      - "scripts/export-ha.ts"
+      - "README.md"
+      - "package.json"
+      - "bun.lock"
+      - "tsconfig.json"
+      - ".github/workflows/publish-ha-repo.yml"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: blacksmith-4vcpu-ubuntu-2204
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source repo
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Export HA repository contents
+        run: bun export:ha
+
+      - name: Checkout target repo
+        env:
+          TARGET_REPO: eranknafo2001/sonos-player-ha
+          TARGET_TOKEN: ${{ secrets.HA_PUBLISH_TOKEN }}
+        run: |
+          test -n "$TARGET_TOKEN"
+          git clone "https://x-access-token:${TARGET_TOKEN}@github.com/${TARGET_REPO}.git" /tmp/sonos-player-ha
+
+      - name: Sync exported files
+        run: |
+          rsync -a --delete \
+            --exclude '.git/' \
+            dist/ha-publish/ /tmp/sonos-player-ha/
+
+      - name: Commit and push if changed
+        env:
+          TARGET_TOKEN: ${{ secrets.HA_PUBLISH_TOKEN }}
+        run: |
+          cd /tmp/sonos-player-ha
+          git config user.name "sonos-player bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes to publish"
+            exit 0
+          fi
+
+          git add -A
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No staged changes to publish"
+            exit 0
+          fi
+
+          git commit -m "Publish from eranknafo2001/sonos-player@${GITHUB_SHA}"
+          git push origin HEAD:main
