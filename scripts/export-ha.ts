@@ -72,8 +72,19 @@ async function main() {
   await copy("packages/ha-addon/rootfs/run.sh", `${outputDir}/sonos_player/rootfs/run.sh`);
 
   await mkdir(`${outputDir}/sonos_player/workspace`);
-  await copy("package.json", `${outputDir}/sonos_player/workspace/package.json`);
-  await copy("bun.lock", `${outputDir}/sonos_player/workspace/bun.lock`);
+  await write(
+    `${outputDir}/sonos_player/workspace/package.json`,
+    JSON.stringify(
+      {
+        name: "sonos-player",
+        type: "module",
+        private: true,
+        workspaces: ["packages/core", "packages/headless"],
+      },
+      null,
+      2,
+    ),
+  );
   await copy("tsconfig.json", `${outputDir}/sonos_player/workspace/tsconfig.json`);
   await mkdir(`${outputDir}/sonos_player/workspace/packages`);
   await copy("packages/core", `${outputDir}/sonos_player/workspace/packages/core`);
