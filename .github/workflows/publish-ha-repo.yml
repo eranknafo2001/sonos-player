@@ -21,7 +21,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - name: Checkout source repo
         uses: actions/checkout@v4
@@ -30,6 +30,25 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
+      - name: Bump version
+        run: |
+          # Read current version from addon config
+          CURRENT=$(grep '^version:' packages/ha-addon/config.yaml | sed 's/version: *"\(.*\)"/\1/')
+          MAJOR=$(echo "$CURRENT" | cut -d. -f1)
+          MINOR=$(echo "$CURRENT" | cut -d. -f2)
+          PATCH=$(echo "$CURRENT" | cut -d. -f3)
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
+          echo "Bumping version: ${CURRENT} -> ${NEW_VERSION}"
+
+          # Update addon config
+          sed -i "s/^version: \".*\"/version: \"${NEW_VERSION}\"/" packages/ha-addon/config.yaml
+
+          # Update integration manifest
+          sed -i "s/\"version\": \".*\"/\"version\": \"${NEW_VERSION}\"/" packages/ha-integration/custom_components/sonos_player/manifest.json
+
+          echo "NEW_VERSION=${NEW_VERSION}" >> "$GITHUB_ENV"
 
       - name: Export HA repository contents
         run: bun export:ha
@@ -67,5 +86,22 @@ jobs:
             exit 0
           fi
 
-          git commit -m "Publish from eranknafo2001/sonos-player@${GITHUB_SHA}"
+          git commit -m "v${NEW_VERSION} — publish from eranknafo2001/sonos-player@${GITHUB_SHA}"
           git push origin HEAD:main
+
+      - name: Commit version bump back to source
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd $GITHUB_WORKSPACE
+          git config user.name "sonos-player bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "No version bump to commit back"
+            exit 0
+          fi
+
+          git add packages/ha-addon/config.yaml packages/ha-integration/custom_components/sonos_player/manifest.json
+          git commit -m "chore: bump version to ${NEW_VERSION}"
+          git push
