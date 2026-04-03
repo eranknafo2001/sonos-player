@@ -1,0 +1,20 @@
+{
+  "name": "@sonos-player/tui",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --env-file=../../.env src/index.ts",
+    "start": "bun --env-file=../../.env src/index.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit --pretty false --incremental false"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.96",
+    "@opentui/react": "^0.1.96",
+    "@sonos-player/core": "workspace:*",
+    "@tanstack/react-query": "^5.79.0",
+    "react": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.13"
+  }
+}

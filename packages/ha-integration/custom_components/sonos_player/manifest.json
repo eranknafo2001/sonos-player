@@ -1,0 +1,11 @@
+{
+  "domain": "sonos_player",
+  "name": "Sonos Player",
+  "version": "0.1.0",
+  "documentation": "https://github.com/eranif/sonos-player",
+  "issue_tracker": "https://github.com/eranif/sonos-player/issues",
+  "config_flow": true,
+  "requirements": [],
+  "codeowners": ["@eranif"],
+  "iot_class": "local_polling"
+}
