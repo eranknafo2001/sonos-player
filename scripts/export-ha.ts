@@ -1,4 +1,4 @@
-const sourceRepoUrl = process.env.SOURCE_REPO_URL ?? "https://github.com/eranknafo2001/sonos-player";
+const publishedRepoUrl = process.env.PUBLISHED_REPO_URL ?? "https://github.com/eranknafo2001/sonos-player-ha";
 const outputDir = process.env.HA_EXPORT_DIR ?? "dist/ha-publish";
 
 async function rm(path: string) {
@@ -25,7 +25,7 @@ async function main() {
 
   await write(
     `${outputDir}/repository.yaml`,
-    `name: Sonos Player Add-ons\nurl: ${sourceRepoUrl}\nmaintainer: Eran Knafo <eran@example.com>\n`,
+    `name: Sonos Player Add-ons\nurl: ${publishedRepoUrl}\nmaintainer: Eran Knafo <eran@example.com>\n`,
   );
 
   await copy("packages/ha-integration/hacs.json", `${outputDir}/hacs.json`);
