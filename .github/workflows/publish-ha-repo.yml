@@ -4,17 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "packages/core/**"
-      - "packages/headless/**"
-      - "packages/ha-addon/**"
-      - "packages/ha-integration/**"
-      - "scripts/export-ha.ts"
-      - "README.md"
-      - "package.json"
-      - "bun.lock"
-      - "tsconfig.json"
-      - ".github/workflows/publish-ha-repo.yml"
   workflow_dispatch:
 
 jobs:
@@ -32,15 +21,27 @@ jobs:
           bun-version: latest
 
       - name: Bump version and export HA repository
-        run: BUMP_VERSION=true bun export:ha
+        run: |
+          BUMP_VERSION=true bun export:ha
+
+          # Read the new version from the bumped config
+          NEW_VERSION=$(grep '^version:' packages/ha-addon/config.yaml | sed 's/version: *"\(.*\)"/\1/')
+          echo "NEW_VERSION=${NEW_VERSION}" >> "$GITHUB_ENV"
+          echo "Exported version: ${NEW_VERSION}"
+
+      - name: Verify export
+        run: |
+          echo "Exported files:"
+          find dist/ha-publish -type f | sort
+          echo "---"
+          echo "Addon version:"
+          grep version dist/ha-publish/sonos_player/config.yaml
+          echo "Integration version:"
+          grep version dist/ha-publish/custom_components/sonos_player/manifest.json
 
       - name: Checkout target repo
-        env:
-          TARGET_REPO: eranknafo2001/sonos-player-ha
-          TARGET_TOKEN: ${{ secrets.HA_PUBLISH_TOKEN }}
         run: |
-          test -n "$TARGET_TOKEN"
-          git clone "https://x-access-token:${TARGET_TOKEN}@github.com/${TARGET_REPO}.git" /tmp/sonos-player-ha
+          git clone "https://x-access-token:${{ secrets.HA_PUBLISH_TOKEN }}@github.com/eranknafo2001/sonos-player-ha.git" /tmp/sonos-player-ha
 
       - name: Sync exported files
         run: |
@@ -48,41 +49,35 @@ jobs:
             --exclude '.git/' \
             dist/ha-publish/ /tmp/sonos-player-ha/
 
-      - name: Commit and push if changed
-        env:
-          TARGET_TOKEN: ${{ secrets.HA_PUBLISH_TOKEN }}
+      - name: Commit and push to HA repo
         run: |
           cd /tmp/sonos-player-ha
           git config user.name "sonos-player bot"
           git config user.email "actions@users.noreply.github.com"
 
-          if [ -z "$(git status --porcelain)" ]; then
+          git add -A
+          if git diff --cached --quiet; then
             echo "No changes to publish"
             exit 0
           fi
 
-          git add -A
-          if [ -z "$(git status --porcelain)" ]; then
-            echo "No staged changes to publish"
-            exit 0
-          fi
-
+          git status
           git commit -m "v${NEW_VERSION} — publish from eranknafo2001/sonos-player@${GITHUB_SHA}"
           git push origin HEAD:main
+          echo "Published v${NEW_VERSION} to sonos-player-ha"
 
       - name: Commit version bump back to source
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd $GITHUB_WORKSPACE
           git config user.name "sonos-player bot"
           git config user.email "actions@users.noreply.github.com"
 
-          if git diff --quiet; then
+          git add packages/ha-addon/config.yaml packages/ha-integration/custom_components/sonos_player/manifest.json
+          if git diff --cached --quiet; then
             echo "No version bump to commit back"
             exit 0
           fi
 
-          git add packages/ha-addon/config.yaml packages/ha-integration/custom_components/sonos_player/manifest.json
           git commit -m "chore: bump version to ${NEW_VERSION} [skip ci]"
           git push
+          echo "Version ${NEW_VERSION} committed back to source"
