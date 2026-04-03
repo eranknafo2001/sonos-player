@@ -103,5 +103,5 @@ jobs:
           fi
 
           git add packages/ha-addon/config.yaml packages/ha-integration/custom_components/sonos_player/manifest.json
-          git commit -m "chore: bump version to ${NEW_VERSION}"
+          git commit -m "chore: bump version to ${NEW_VERSION} [skip ci]"
           git push
