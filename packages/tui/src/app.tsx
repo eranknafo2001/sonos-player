@@ -106,28 +106,6 @@ export function App() {
       case "r":
         void run(() => app.getSnapshot(), "Refreshed state.");
         return;
-      case "p":
-        void run(() => app.play(targetGroupCoordinatorId), `Play sent to ${coordinator?.roomName ?? "coordinator"}.`);
-        return;
-      case "s":
-        void run(() => app.pause(targetGroupCoordinatorId), `Pause sent to ${coordinator?.roomName ?? "coordinator"}.`);
-        return;
-      case "n":
-        void run(() => app.next(targetGroupCoordinatorId), `Next sent to ${coordinator?.roomName ?? "coordinator"}.`);
-        return;
-      case "b":
-        void run(() => app.previous(targetGroupCoordinatorId), `Previous sent to ${coordinator?.roomName ?? "coordinator"}.`);
-        return;
-      case "m":
-        void run(() => app.toggleMute(targetGroupCoordinatorId), `Mute toggled on ${coordinator?.roomName ?? "coordinator"}.`);
-        return;
-      case "+":
-      case "=":
-        void run(() => app.adjustVolume(5, targetGroupCoordinatorId), `Volume raised on ${coordinator?.roomName ?? "coordinator"}.`);
-        return;
-      case "-":
-        void run(() => app.adjustVolume(-5, targetGroupCoordinatorId), `Volume lowered on ${coordinator?.roomName ?? "coordinator"}.`);
-        return;
       default:
         return;
     }
