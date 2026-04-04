@@ -24,7 +24,6 @@ This is a Bun workspace monorepo.
 - `packages/headless` — headless service entrypoint + HTTP API (the real app)
 - `packages/tui` — debug OpenTUI app (optional, for inspection only)
 - `packages/ha-addon` — Home Assistant add-on source (Dockerfile, config.yaml, run.sh)
-- `packages/ha-integration` — Home Assistant custom integration source (Python, `custom_components/sonos_player`)
 
 ### Key files
 
@@ -56,15 +55,15 @@ bun run export:ha  # export HA publish repo to dist/ha-publish
 - **Sonos module** (`packages/core/src/sonos/`) — discovery, speaker state, grouping, playback, favorites. Uses `@svrooij/sonos`. No MQTT dependency.
 - **MQTT module** (`packages/core/src/mqtt/`) — MQTT connection, desired speaker state, HA discovery publishing, workaround config. No Sonos dependency.
 - **App module** (`packages/core/src/app/`) — orchestrates Sonos + MQTT: reconciles desired state, publishes snapshots, handles coordinator-leave workaround, media browsing/playing.
-- **Headless** (`packages/headless/`) — starts app background service, exposes HTTP API (`/health`, `/api/state`, `/api/command`, `/api/browse`, `/api/play-media`).
+- **Headless** (`packages/headless/`) — starts app background service, keeps process alive.
 - **TUI** (`packages/tui/`) — OpenTUI React app for debugging. Uses `@tanstack/react-query` with refetch interval. Imports from `@sonos-player/core`.
 
 ## Home Assistant integration
 
 - **MQTT entities** — switches per speaker (group membership + advance-on-coordinator-leave workaround), coordinator sensor. Published via MQTT device discovery to `homeassistant/device/sonos-player/config`.
-- **Custom integration** (`packages/ha-integration/`) — Python HA integration that provides a real `media_player` entity via the headless HTTP API. Supports play/pause/next/previous, browse media (Sonos Favorites), play media.
 - **Add-on** (`packages/ha-addon/`) — Docker-based HA add-on that runs the headless service on HAOS.
-- **Publishing** — CI exports source packages into a publishable repo layout at `eranknafo2001/sonos-player-ha`. That repo is what users add to HACS/add-on store.
+- **Native Sonos integration** — the official HA Sonos integration provides full `media_player` entities per speaker with playback, media browsing, and grouping. No custom integration is needed.
+- **Publishing** — CI exports source packages into a publishable repo layout at `eranknafo2001/sonos-player-ha`. That repo is what users add to the HA add-on store.
 
 ## Key design decisions
 

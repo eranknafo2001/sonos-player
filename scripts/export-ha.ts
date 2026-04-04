@@ -20,7 +20,6 @@ async function write(path: string, content: string) {
 
 async function bumpVersion() {
   const configPath = "packages/ha-addon/config.yaml";
-  const manifestPath = "packages/ha-integration/custom_components/sonos_player/manifest.json";
 
   const config = await Bun.file(configPath).text();
   const match = config.match(/version: "(\d+)\.(\d+)\.(\d+)"/);
@@ -32,16 +31,12 @@ async function bumpVersion() {
 
   await Bun.write(configPath, config.replace(/version: ".*"/, `version: "${newVersion}"`));
 
-  const manifest = await Bun.file(manifestPath).text();
-  await Bun.write(manifestPath, manifest.replace(/"version": ".*"/, `"version": "${newVersion}"`));
-
   return newVersion;
 }
 
 async function main() {
   if (shouldBumpVersion) {
     const newVersion = await bumpVersion();
-    // Write version for CI to pick up
     if (process.env.GITHUB_ENV) {
       const fs = await import("node:fs");
       fs.appendFileSync(process.env.GITHUB_ENV, `NEW_VERSION=${newVersion}\n`);
@@ -58,19 +53,14 @@ async function main() {
     `name: Sonos Player Add-ons\nurl: ${publishedRepoUrl}\nmaintainer: Eran Knafo <eran@example.com>\n`,
   );
 
-  await copy("packages/ha-integration/hacs.json", `${outputDir}/hacs.json`);
-  await mkdir(`${outputDir}/custom_components`);
-  await copy(
-    "packages/ha-integration/custom_components/sonos_player",
-    `${outputDir}/custom_components/sonos_player`,
-  );
-
+  // Add-on
   await mkdir(`${outputDir}/sonos_player`);
   await copy("packages/ha-addon/config.yaml", `${outputDir}/sonos_player/config.yaml`);
   await copy("packages/ha-addon/Dockerfile", `${outputDir}/sonos_player/Dockerfile`);
   await mkdir(`${outputDir}/sonos_player/rootfs`);
   await copy("packages/ha-addon/rootfs/run.sh", `${outputDir}/sonos_player/rootfs/run.sh`);
 
+  // Workspace for Docker build
   await mkdir(`${outputDir}/sonos_player/workspace`);
   await write(
     `${outputDir}/sonos_player/workspace/package.json`,
