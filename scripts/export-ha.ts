@@ -59,16 +59,6 @@ async function main() {
   );
 
   await copy("packages/ha-integration/hacs.json", `${outputDir}/hacs.json`);
-
-  // Write build info to ensure every CI run produces a detectable change
-  const version = await Bun.file("packages/ha-addon/config.yaml")
-    .text()
-    .then((c) => c.match(/version: "(.*)"/)?.[1] ?? "unknown");
-  await write(
-    `${outputDir}/.build-info`,
-    `version: ${version}\ncommit: ${process.env.GITHUB_SHA ?? "local"}\nbuilt: ${new Date().toISOString()}\n`,
-  );
-
   await mkdir(`${outputDir}/custom_components`);
   await copy(
     "packages/ha-integration/custom_components/sonos_player",
