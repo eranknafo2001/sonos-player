@@ -58,7 +58,8 @@ jobs:
           git add -A
           git status
           git commit -m "v${NEW_VERSION} — publish from eranknafo2001/sonos-player@${GITHUB_SHA}"
-          git push origin HEAD:main
+          git tag -a "v${NEW_VERSION}" -m "v${NEW_VERSION}"
+          git push origin HEAD:main --tags
           echo "Published v${NEW_VERSION} to sonos-player-ha"
 
       - name: Commit version bump back to source
