@@ -49,7 +49,7 @@ jobs:
 
       - name: Sync exported files
         run: |
-          rsync -a --delete \
+          rsync -a --checksum --delete \
             --exclude '.git/' \
             dist/ha-publish/ /tmp/sonos-player-ha/
 
